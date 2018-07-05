@@ -110,7 +110,7 @@ var AppComponent = (function () {
                         _a.texture = _e.sent();
                         player = new __WEBPACK_IMPORTED_MODULE_1_dymo_player__["DymoPlayerManager"](false);
                         player.setScheduleAheadTime(2);
-                        return [4 /*yield*/, player.init()];
+                        return [4 /*yield*/, player.init("https://tiny.cc/")];
                     case 2:
                         _e.sent();
                         _c = (_b = console).log;
