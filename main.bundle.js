@@ -108,8 +108,7 @@ var AppComponent = (function () {
                         return [4 /*yield*/, this.apiService.getTexture()];
                     case 1:
                         _a.texture = _e.sent();
-                        player = new __WEBPACK_IMPORTED_MODULE_1_dymo_player__["DymoPlayerManager"](false);
-                        player.setScheduleAheadTime(2);
+                        player = new __WEBPACK_IMPORTED_MODULE_1_dymo_player__["DymoPlayerManager"](true, true, 0.2, 2);
                         return [4 /*yield*/, player.init("https://raw.githubusercontent.com/dynamic-music/dymo-core/master/ontologies/")];
                     case 2:
                         _e.sent();
@@ -118,7 +117,7 @@ var AppComponent = (function () {
                         return [4 /*yield*/, player.getDymoManager().getStore().size()];
                     case 3:
                         _c.apply(_b, _d.concat([_e.sent()]));
-                        return [4 /*yield*/, player.getDymoManager().loadIntoStoreFromString(this.texture)];
+                        return [4 /*yield*/, player.loadDymoFromString(this.texture)];
                     case 4:
                         _e.sent();
                         player.startPlaying();
@@ -234,7 +233,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 
 var ApiService = (function () {
     function ApiService() {
-        this.API_URL = "https://play-it-again-use-it-together.herokuapp.com/"; //"http://localhost:8060/";//"https://play-it-again-use-it-together.herokuapp.com/";
+        this.API_URL = "https://play-it-again-use-it-together.herokuapp.com/";
     }
     ApiService.prototype.getTexture = function () {
         return __awaiter(this, void 0, void 0, function () {
