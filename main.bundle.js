@@ -233,7 +233,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 
 var ApiService = (function () {
     function ApiService() {
-        this.API_URL = "https://play-it-again-use-it-together.herokuapp.com/";
+        this.API_URL = "https://play-it-again-use-it-together.herokuapp.com/"; //"http://localhost:8060/";
     }
     ApiService.prototype.getTexture = function () {
         return __awaiter(this, void 0, void 0, function () {
