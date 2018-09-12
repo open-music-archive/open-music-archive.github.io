@@ -34,7 +34,7 @@ module.exports = module.exports.toString();
 /***/ "../../../../../src/app/app.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<!--The content below is only a placeholder and can be replaced.-->\n<div style=\"text-align:center\">\n  <h1>\n    Open Music Archive Browser\n  </h1>\n  <img width=\"300\" src=\"http://www.openmusicarchive.org/projects/images/1/14/IMG_2824.jpg\">\n  <br>\n  <textarea disabled style=\"border:none;resize:none\" rows=\"18\" cols=\"50\">{{texture}}</textarea>\n</div>\n\n"
+module.exports = "<!--The content below is only a placeholder and can be replaced.-->\n<div style=\"text-align:center\">\n  <h1>\n    Open Music Archive Browser\n  </h1>\n  <img width=\"300\" src=\"http://www.openmusicarchive.org/projects/images/1/14/IMG_2824.jpg\">\n  <br>\n  {{performanceInfo}}\n  <br>\n  <textarea disabled style=\"border:none;resize:none\" rows=\"18\" cols=\"50\">{{texture}}</textarea>\n  <br>\n  <button (click)=\"downloadCurrentSoundObjects()\">Download current sound objects</button>\n</div>\n\n"
 
 /***/ }),
 
@@ -46,6 +46,13 @@ module.exports = "<!--The content below is only a placeholder and can be replace
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_dymo_player__ = __webpack_require__("../../../../dymo-player/lib/index.js");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_dymo_player___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_dymo_player__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__services_api_service__ = __webpack_require__("../../../../../src/app/services/api-service.ts");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_jszip__ = __webpack_require__("../../../../jszip/lib/index.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_jszip___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3_jszip__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_lodash__ = __webpack_require__("../../../../lodash/lodash.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_lodash___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_4_lodash__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5_file_saver_FileSaver__ = __webpack_require__("../../../../file-saver/FileSaver.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5_file_saver_FileSaver___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_5_file_saver_FileSaver__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__angular_http__ = __webpack_require__("../../../http/@angular/http.es5.js");
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return AppComponent; });
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -94,33 +101,171 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 
 
 
+
+
+
+
 var AppComponent = (function () {
-    function AppComponent(apiService) {
+    function AppComponent(apiService, http) {
         this.apiService = apiService;
+        this.http = http;
     }
     AppComponent.prototype.ngOnInit = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, player, _b, _c, _d;
-            return __generator(this, function (_e) {
-                switch (_e.label) {
+            var _this = this;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        this.player = new __WEBPACK_IMPORTED_MODULE_1_dymo_player__["DymoPlayer"]({ useWorkers: true, preloadBuffers: true,
+                            scheduleAheadTime: 1, loadAheadTime: 1, loggingOn: false });
+                        return [4 /*yield*/, this.player.init("https://raw.githubusercontent.com/dynamic-music/dymo-core/master/ontologies/")];
+                    case 1:
+                        _a.sent();
+                        this.player.getPlayingDymoUris().subscribe(function (ds) { return _this.numPlayingDymos = ds.length; });
+                        this.player.getAudioBank().getBufferCount().subscribe(function (n) { return _this.numLoadedBuffers = n; });
+                        this.playCrackling();
+                        this.playLiveTexture();
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    AppComponent.prototype.playLiveTexture = function () {
+        var _this = this;
+        var live = this.apiService.onLiveTexture().subscribe(function (texture) { return __awaiter(_this, void 0, void 0, function () {
+            var newUris, newUri, _a, _b, _c;
+            return __generator(this, function (_d) {
+                switch (_d.label) {
+                    case 0:
+                        this.texture = texture;
+                        return [4 /*yield*/, this.player.loadDymoFromString(texture)];
+                    case 1:
+                        newUris = (_d.sent()).dymoUris;
+                        newUri = newUris[newUris.length - 1];
+                        _b = (_a = console).log;
+                        _c = ["LIVE"];
+                        return [4 /*yield*/, this.player.getDymoManager().getStore().size()];
+                    case 2:
+                        _b.apply(_a, _c.concat([_d.sent()]));
+                        this.updatePerformanceInfo();
+                        if (this.previousUri && this.player.isPlaying(this.previousUri)) {
+                            this.player.transitionToUri(newUri, this.previousUri, 3);
+                        }
+                        else {
+                            this.player.playUri(newUri); //, this.previousUri);
+                        }
+                        this.previousUri = newUri;
+                        return [2 /*return*/];
+                }
+            });
+        }); });
+    };
+    AppComponent.prototype.playTexture = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var _a;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
                     case 0:
                         _a = this;
                         return [4 /*yield*/, this.apiService.getTexture()];
                     case 1:
-                        _a.texture = _e.sent();
-                        player = new __WEBPACK_IMPORTED_MODULE_1_dymo_player__["DymoPlayerManager"](true, true, 0.2, 2);
-                        return [4 /*yield*/, player.init("https://raw.githubusercontent.com/dynamic-music/dymo-core/master/ontologies/")];
+                        _a.texture = _b.sent();
+                        return [4 /*yield*/, this.player.loadDymoFromString(this.texture)];
                     case 2:
-                        _e.sent();
-                        _c = (_b = console).log;
-                        _d = ["loaded"];
-                        return [4 /*yield*/, player.getDymoManager().getStore().size()];
+                        _b.sent();
+                        this.player.play();
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    AppComponent.prototype.playCrackling = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var _this = this;
+            return __generator(this, function (_a) {
+                this.http.get('assets/crackling.json')
+                    .subscribe(function (c) { return __awaiter(_this, void 0, void 0, function () {
+                    var uri;
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0: return [4 /*yield*/, this.player.loadDymoFromString(c.text())];
+                            case 1:
+                                uri = (_a.sent()).dymoUris[0];
+                                this.player.playUri(uri);
+                                this.previousUri = uri;
+                                return [2 /*return*/];
+                        }
+                    });
+                }); });
+                return [2 /*return*/];
+            });
+        });
+    };
+    AppComponent.prototype.downloadCurrentSoundObjects = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var _this = this;
+            var files, zip, folder_1;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (!this.previousUri) return [3 /*break*/, 3];
+                        return [4 /*yield*/, this.player.getDymoManager().getStore().getAllSourcePaths()];
+                    case 1:
+                        files = _a.sent();
+                        zip = new __WEBPACK_IMPORTED_MODULE_3_jszip__();
+                        folder_1 = zip.folder("sound-objects");
+                        return [4 /*yield*/, Promise.all(files.map(function (f) { return __awaiter(_this, void 0, void 0, function () {
+                                var audio, name;
+                                return __generator(this, function (_a) {
+                                    switch (_a.label) {
+                                        case 0: return [4 /*yield*/, fetch(f, { mode: 'cors' })];
+                                        case 1:
+                                            audio = _a.sent();
+                                            name = f.slice(__WEBPACK_IMPORTED_MODULE_4_lodash__["lastIndexOf"](f, '/') + 1);
+                                            if (audio.ok) {
+                                                folder_1.file(name, audio.arrayBuffer());
+                                            }
+                                            return [2 /*return*/];
+                                    }
+                                });
+                            }); }))];
+                    case 2:
+                        _a.sent();
+                        zip.generateAsync({ type: "blob" }).then(function (content) {
+                            __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_5_file_saver_FileSaver__["saveAs"])(content, "sound-objects.zip");
+                        });
+                        _a.label = 3;
+                    case 3: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    AppComponent.prototype.updatePerformanceInfo = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var info, store, _a, _b, _c, _d, _e, _f, _g, _h, _j;
+            return __generator(this, function (_k) {
+                switch (_k.label) {
+                    case 0:
+                        info = [];
+                        store = this.player.getDymoManager().getStore();
+                        _b = (_a = info).push;
+                        _c = "triples: ";
+                        return [4 /*yield*/, store.size()];
+                    case 1:
+                        _b.apply(_a, [_c + (_k.sent())]);
+                        _e = (_d = info).push;
+                        _f = "observers: ";
+                        return [4 /*yield*/, store.getValueObserverCount()];
+                    case 2:
+                        _e.apply(_d, [_f + (_k.sent())]);
+                        _h = (_g = info).push;
+                        _j = "constraints: ";
+                        return [4 /*yield*/, store.getActiveConstraintCount()];
                     case 3:
-                        _c.apply(_b, _d.concat([_e.sent()]));
-                        return [4 /*yield*/, player.loadDymoFromString(this.texture)];
-                    case 4:
-                        _e.sent();
-                        player.startPlaying();
+                        _h.apply(_g, [_j + (_k.sent())]);
+                        info.push("dymos: " + this.numPlayingDymos);
+                        info.push("buffers: " + this.numLoadedBuffers);
+                        this.performanceInfo = info.join(', ');
                         return [2 /*return*/];
                 }
             });
@@ -134,10 +279,10 @@ AppComponent = __decorate([
         template: __webpack_require__("../../../../../src/app/app.component.html"),
         styles: [__webpack_require__("../../../../../src/app/app.component.css")]
     }),
-    __metadata("design:paramtypes", [typeof (_a = typeof __WEBPACK_IMPORTED_MODULE_2__services_api_service__["a" /* ApiService */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_2__services_api_service__["a" /* ApiService */]) === "function" && _a || Object])
+    __metadata("design:paramtypes", [typeof (_a = typeof __WEBPACK_IMPORTED_MODULE_2__services_api_service__["a" /* ApiService */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_2__services_api_service__["a" /* ApiService */]) === "function" && _a || Object, typeof (_b = typeof __WEBPACK_IMPORTED_MODULE_6__angular_http__["b" /* Http */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_6__angular_http__["b" /* Http */]) === "function" && _b || Object])
 ], AppComponent);
 
-var _a;
+var _a, _b;
 //# sourceMappingURL=app.component.js.map
 
 /***/ }),
@@ -148,8 +293,9 @@ var _a;
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__angular_platform_browser__ = __webpack_require__("../../../platform-browser/@angular/platform-browser.es5.js");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__angular_core__ = __webpack_require__("../../../core/@angular/core.es5.js");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__app_component__ = __webpack_require__("../../../../../src/app/app.component.ts");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__services_api_service__ = __webpack_require__("../../../../../src/app/services/api-service.ts");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__angular_http__ = __webpack_require__("../../../http/@angular/http.es5.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__app_component__ = __webpack_require__("../../../../../src/app/app.component.ts");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__services_api_service__ = __webpack_require__("../../../../../src/app/services/api-service.ts");
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return AppModule; });
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -157,6 +303,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
+
 
 
 
@@ -169,13 +316,14 @@ var AppModule = (function () {
 AppModule = __decorate([
     __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_1__angular_core__["b" /* NgModule */])({
         declarations: [
-            __WEBPACK_IMPORTED_MODULE_2__app_component__["a" /* AppComponent */]
+            __WEBPACK_IMPORTED_MODULE_3__app_component__["a" /* AppComponent */]
         ],
         imports: [
-            __WEBPACK_IMPORTED_MODULE_0__angular_platform_browser__["a" /* BrowserModule */]
+            __WEBPACK_IMPORTED_MODULE_0__angular_platform_browser__["a" /* BrowserModule */],
+            __WEBPACK_IMPORTED_MODULE_2__angular_http__["a" /* HttpModule */]
         ],
-        providers: [__WEBPACK_IMPORTED_MODULE_3__services_api_service__["a" /* ApiService */]],
-        bootstrap: [__WEBPACK_IMPORTED_MODULE_2__app_component__["a" /* AppComponent */]]
+        providers: [__WEBPACK_IMPORTED_MODULE_4__services_api_service__["a" /* ApiService */]],
+        bootstrap: [__WEBPACK_IMPORTED_MODULE_3__app_component__["a" /* AppComponent */]]
     })
 ], AppModule);
 
@@ -188,6 +336,10 @@ AppModule = __decorate([
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__angular_core__ = __webpack_require__("../../../core/@angular/core.es5.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_rxjs_Observable__ = __webpack_require__("../../../../rxjs/Observable.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_rxjs_Observable___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_rxjs_Observable__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_socket_io_client__ = __webpack_require__("../../../../socket.io-client/lib/index.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_socket_io_client___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_socket_io_client__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return ApiService; });
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -231,9 +383,16 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 
+
+
 var ApiService = (function () {
     function ApiService() {
         this.API_URL = "https://play-it-again-use-it-together.herokuapp.com/"; //"http://localhost:8060/";
+        this.socket = __WEBPACK_IMPORTED_MODULE_2_socket_io_client__(this.API_URL, {
+            extraHeaders: {
+                'Access-Control-Allow-Credentials': 'omit'
+            }
+        });
     }
     ApiService.prototype.getTexture = function () {
         return __awaiter(this, void 0, void 0, function () {
@@ -246,6 +405,12 @@ var ApiService = (function () {
                     case 1: return [2 /*return*/, _b.apply(_a, [_c.sent(), null, "    "])];
                 }
             });
+        });
+    };
+    ApiService.prototype.onLiveTexture = function () {
+        var _this = this;
+        return new __WEBPACK_IMPORTED_MODULE_1_rxjs_Observable__["Observable"](function (observer) {
+            _this.socket.on('live-stream', function (data) { return observer.next(data); });
         });
     };
     ApiService.prototype.getJsonFromApi = function (path, params) {
@@ -380,6 +545,13 @@ webpackContext.id = "../../../../n3/lib recursive ^\\.\\/N3.*$";
 /***/ }),
 
 /***/ 3:
+/***/ (function(module, exports) {
+
+/* (ignored) */
+
+/***/ }),
+
+/***/ 4:
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports = __webpack_require__("../../../../../src/main.ts");
@@ -387,5 +559,5 @@ module.exports = __webpack_require__("../../../../../src/main.ts");
 
 /***/ })
 
-},[3]);
+},[4]);
 //# sourceMappingURL=main.bundle.js.map
